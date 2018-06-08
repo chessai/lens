@@ -570,7 +570,7 @@ limitedSubst sub (KindedTV n k)
 limitedSubst _ tv = return tv
 
 
--- | Apply a substitution to a type. This is used after unifying
+-- | Semiapplicative a substitution to a type. This is used after unifying
 -- the types of the fields in unifyTypes.
 applyTypeSubst :: Map Name Type -> Type -> Type
 applyTypeSubst sub = rewrite aux

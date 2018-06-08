@@ -80,7 +80,7 @@ module Control.Lens.Traversal
 
   -- * Common Traversals
   , Traversable(traverse)
-  , Traversable1(traverse1)
+  , Semitraversable(semitraverse)
   , both, both1
   , beside
   , taking
@@ -164,8 +164,8 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Reflection
-import Data.Semigroup.Traversable
-import Data.Semigroup.Bitraversable
+import Data.Semigroup.Semitraversable
+import Data.Semigroup.Semibitraversable
 import Data.Traversable
 import Data.Tuple (swap)
 import GHC.Magic (inline)
@@ -275,7 +275,7 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 -- @
 -- 'traverseOf' :: 'Functor' f     => 'Iso' s t a b        -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Functor' f     => 'Lens' s t a b       -> (a -> f b) -> s -> f t
--- 'traverseOf' :: 'Apply' f       => 'Traversal1' s t a b -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Semiapplicative' f       => 'Traversal1' s t a b -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Applicative' f => 'Traversal' s t a b  -> (a -> f b) -> s -> f t
 -- @
 traverseOf :: LensLike f s t a b -> (a -> f b) -> s -> f t
@@ -798,7 +798,7 @@ both :: Bitraversable r => Traversal (r a a) (r b b) a b
 both f = bitraverse f f
 {-# INLINE both #-}
 
--- | Traverse both parts of a 'Bitraversable1' container with matching types.
+-- | Traverse both parts of a 'Semibitraversable' container with matching types.
 --
 -- Usually that type will be a pair.
 --
@@ -806,11 +806,11 @@ both f = bitraverse f f
 -- 'both1' :: 'Traversal1' (a, a)       (b, b)       a b
 -- 'both1' :: 'Traversal1' ('Either' a a) ('Either' b b) a b
 -- @
-both1 :: Bitraversable1 r => Traversal1 (r a a) (r b b) a b
-both1 f = bitraverse1 f f
+both1 :: Semibitraversable r => Traversal1 (r a a) (r b b) a b
+both1 f = semibitraverse f f
 {-# INLINE both1 #-}
 
--- | Apply a different 'Traversal' or 'Fold' to each side of a 'Bitraversable' container.
+-- | Semiapplicative a different 'Traversal' or 'Fold' to each side of a 'Bitraversable' container.
 --
 -- @
 -- 'beside' :: 'Traversal' s t a b                -> 'Traversal' s' t' a b                -> 'Traversal' (r s s') (r t t') a b
@@ -980,7 +980,7 @@ cloneIndexedTraversal1 l f = bazaar1 (Indexed (indexed f)) . l sell
 -- @
 -- 'itraverseOf' :: 'Functor' f     => 'IndexedLens' i s t a b       -> (i -> a -> f b) -> s -> f t
 -- 'itraverseOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b  -> (i -> a -> f b) -> s -> f t
--- 'itraverseOf' :: 'Apply' f       => 'IndexedTraversal1' i s t a b -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Semiapplicative' f       => 'IndexedTraversal1' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
 itraverseOf l = l .# Indexed
@@ -996,7 +996,7 @@ itraverseOf l = l .# Indexed
 -- @
 -- 'iforOf' :: 'Functor' f     => 'IndexedLens' i s t a b       -> s -> (i -> a -> f b) -> f t
 -- 'iforOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b  -> s -> (i -> a -> f b) -> f t
--- 'iforOf' :: 'Apply' f       => 'IndexedTraversal1' i s t a b -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Semiapplicative' f       => 'IndexedTraversal1' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
 iforOf = flip . itraverseOf
@@ -1015,7 +1015,7 @@ iforOf = flip . itraverseOf
 -- @
 -- 'imapMOf' :: 'Monad' m => 'IndexedLens'       i s t a b -> (i -> a -> m b) -> s -> m t
 -- 'imapMOf' :: 'Monad' m => 'IndexedTraversal'  i s t a b -> (i -> a -> m b) -> s -> m t
--- 'imapMOf' :: 'Bind'  m => 'IndexedTraversal1' i s t a b -> (i -> a -> m b) -> s -> m t
+-- 'imapMOf' :: 'Semimonad'  m => 'IndexedTraversal1' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
 imapMOf :: Over (Indexed i) (WrappedMonad m) s t a b  -> (i -> a -> m b) -> s -> m t
 imapMOf l cmd = unwrapMonad #. l (WrapMonad #. Indexed cmd)
@@ -1096,9 +1096,9 @@ imapList f = go 0
 "traversed -> imapVector" traversed = isets Vector.imap  :: AnIndexedSetter Int (Vector a) (Vector b) a b;
  #-}
 
--- | Traverse any 'Traversable1' container. This is an 'IndexedTraversal1' that is indexed by ordinal position.
-traversed1 :: Traversable1 f => IndexedTraversal1 Int (f a) (f b) a b
-traversed1 = conjoined traverse1 (indexing traverse1)
+-- | Traverse any 'Semitraversable' container. This is an 'IndexedTraversal1' that is indexed by ordinal position.
+traversed1 :: Semitraversable f => IndexedTraversal1 Int (f a) (f b) a b
+traversed1 = conjoined semitraverse (indexing semitraverse)
 {-# INLINE traversed1 #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.

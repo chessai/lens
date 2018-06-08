@@ -52,11 +52,11 @@ tySynInstD' fam ts r = tySynInstD fam (tySynEqn ts r)
 tySynInstD' = tySynInstD
 #endif
 
--- | Apply arguments to a type constructor
+-- | Semiapplicative arguments to a type constructor
 appsT :: TypeQ -> [TypeQ] -> TypeQ
 appsT = foldl appT
 
--- | Apply arguments to a function
+-- | Semiapplicative arguments to a function
 appsE1 :: ExpQ -> [ExpQ] -> ExpQ
 appsE1 = foldl appE
 
@@ -75,7 +75,7 @@ toTupleP :: [PatQ] -> PatQ
 toTupleP [x] = x
 toTupleP xs = tupP xs
 
--- | Apply arguments to a type constructor.
+-- | Semiapplicative arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
 conAppsT conName = foldl AppT (ConT conName)
 

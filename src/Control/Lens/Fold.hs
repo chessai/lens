@@ -84,7 +84,7 @@ module Control.Lens.Fold
   , andOf, orOf
   , productOf, sumOf
   , traverseOf_, forOf_, sequenceAOf_
-  , traverse1Of_, for1Of_, sequence1Of_
+  , semitraverseOf_, for1Of_, semisequenceOf_
   , mapMOf_, forMOf_, sequenceOf_
   , asumOf, msumOf
   , concatMapOf, concatOf
@@ -163,7 +163,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.CallStack
 import Data.Foldable
-import Data.Functor.Apply
+import Data.Functor.Semiapplicative
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Int (Int64)
@@ -279,7 +279,7 @@ ifoldr64 f z xs = foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 -- @
 -- 'repeated' :: 'Fold1' a a
 -- @
-repeated :: Apply f => LensLike' f a a
+repeated :: Semiapplicative f => LensLike' f a a
 repeated f a = as where as = f a .> as
 {-# INLINE repeated #-}
 
@@ -306,7 +306,7 @@ replicated n0 f a = go n0 where
 -- @
 -- 'cycled' :: 'Fold1' s a -> 'Fold1' s a
 -- @
-cycled :: Apply f => LensLike f s t a b -> LensLike f s t a b
+cycled :: Semiapplicative f => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a .> as
 {-# INLINE cycled #-}
 
@@ -334,7 +334,7 @@ unfolded f g b0 = go b0 where
 -- @
 -- 'iterated' :: (a -> a) -> 'Fold1' a a
 -- @
-iterated :: Apply f => (a -> a) -> LensLike' f a a
+iterated :: Semiapplicative f => (a -> a) -> LensLike' f a a
 iterated f g a0 = go a0 where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}
@@ -954,47 +954,47 @@ sequenceAOf_ :: Functor f => Getting (Traversed a f) s (f a) -> s -> f ()
 sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 {-# INLINE sequenceAOf_ #-}
 
--- | Traverse over all of the targets of a 'Fold1', computing an 'Apply' based answer.
+-- | Traverse over all of the targets of a 'Fold1', computing an 'Semiapplicative' based answer.
 --
 -- As long as you have 'Applicative' or 'Functor' effect you are better using 'traverseOf_'.
--- The 'traverse1Of_' is useful only when you have genuine 'Apply' effect.
+-- The 'semitraverseOf_' is useful only when you have genuine 'Semiapplicative' effect.
 --
--- >>> traverse1Of_ both1 (\ks -> Map.fromList [ (k, ()) | k <- ks ]) ("abc", "bcd")
+-- >>> semitraverseOf_ both1 (\ks -> Map.fromList [ (k, ()) | k <- ks ]) ("abc", "bcd")
 -- fromList [('b',()),('c',())]
 --
 -- @
--- 'traverse1Of_' :: 'Apply' f => 'Fold1' s a -> (a -> f r) -> s -> f ()
+-- 'semitraverseOf_' :: 'Semiapplicative' f => 'Fold1' s a -> (a -> f r) -> s -> f ()
 -- @
 --
 -- @since 4.16
-traverse1Of_ :: Functor f => Getting (TraversedF r f) s a -> (a -> f r) -> s -> f ()
-traverse1Of_ l f = void . getTraversedF #. foldMapOf l (TraversedF #. f)
-{-# INLINE traverse1Of_ #-}
+semitraverseOf_ :: Functor f => Getting (TraversedF r f) s a -> (a -> f r) -> s -> f ()
+semitraverseOf_ l f = void . getTraversedF #. foldMapOf l (TraversedF #. f)
+{-# INLINE semitraverseOf_ #-}
 
--- | See 'forOf_' and 'traverse1Of_'.
+-- | See 'forOf_' and 'semitraverseOf_'.
 --
 -- >>> for1Of_ both1 ("abc", "bcd") (\ks -> Map.fromList [ (k, ()) | k <- ks ])
 -- fromList [('b',()),('c',())]
 --
 -- @
--- 'for1Of_' :: 'Apply' f => 'Fold1' s a -> s -> (a -> f r) -> f ()
+-- 'for1Of_' :: 'Semiapplicative' f => 'Fold1' s a -> s -> (a -> f r) -> f ()
 -- @
 --
 -- @since 4.16
 for1Of_ :: Functor f => Getting (TraversedF r f) s a -> s -> (a -> f r) -> f ()
-for1Of_ = flip . traverse1Of_
+for1Of_ = flip . semitraverseOf_
 {-# INLINE for1Of_ #-}
 
--- | See 'sequenceAOf_' and 'traverse1Of_'.
+-- | See 'sequenceAOf_' and 'semitraverseOf_'.
 --
 -- @
--- 'sequence1Of_' :: 'Apply' f => 'Fold1' s (f a) -> s -> f ()
+-- 'semisequenceOf_' :: 'Semiapplicative' f => 'Fold1' s (f a) -> s -> f ()
 -- @
 --
 -- @since 4.16
-sequence1Of_ :: Functor f => Getting (TraversedF a f) s (f a) -> s -> f ()
-sequence1Of_ l = void . getTraversedF #. foldMapOf l TraversedF
-{-# INLINE sequence1Of_ #-}
+semisequenceOf_ :: Functor f => Getting (TraversedF a f) s (f a) -> s -> f ()
+semisequenceOf_ l = void . getTraversedF #. foldMapOf l TraversedF
+{-# INLINE semisequenceOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
 --
@@ -1316,7 +1316,7 @@ firstOf l = getLeftmost . foldMapOf l LLeaf
 
 -- | Retrieve the 'Data.Semigroup.First' entry of a 'Fold1' or 'Traversal1' or the result from a 'Getter' or 'Lens'.
 --
--- >>> first1Of traverse1 (1 :| [2..10])
+-- >>> first1Of semitraverse (1 :| [2..10])
 -- 1
 --
 -- >>> first1Of both1 (1,2)
@@ -1324,10 +1324,10 @@ firstOf l = getLeftmost . foldMapOf l LLeaf
 --
 -- /Note:/ this is different from '^.'.
 --
--- >>> first1Of traverse1 ([1,2] :| [[3,4],[5,6]])
+-- >>> first1Of semitraverse ([1,2] :| [[3,4],[5,6]])
 -- [1,2]
 --
--- >>> ([1,2] :| [[3,4],[5,6]]) ^. traverse1
+-- >>> ([1,2] :| [[3,4],[5,6]]) ^. semitraverse
 -- [1,2,3,4,5,6]
 --
 -- @
@@ -1370,7 +1370,7 @@ lastOf l = getRightmost . foldMapOf l RLeaf
 -- | Retrieve the 'Data.Semigroup.Last' entry of a 'Fold1' or 'Traversal1' or retrieve the result
 -- from a 'Getter' or 'Lens'.o
 --
--- >>> last1Of traverse1 (1 :| [2..10])
+-- >>> last1Of semitraverse (1 :| [2..10])
 -- 10
 --
 -- >>> last1Of both1 (1,2)
@@ -1497,7 +1497,7 @@ maximumOf l = foldlOf' l mf Nothing where
 
 -- | Obtain the maximum element targeted by a 'Fold1' or 'Traversal1'.
 --
--- >>> maximum1Of traverse1 (1 :| [2..10])
+-- >>> maximum1Of semitraverse (1 :| [2..10])
 -- 10
 --
 -- @
@@ -1547,7 +1547,7 @@ minimumOf l = foldlOf' l mf Nothing where
 
 -- | Obtain the minimum element targeted by a 'Fold1' or 'Traversal1'.
 --
--- >>> minimum1Of traverse1 (1 :| [2..10])
+-- >>> minimum1Of semitraverse (1 :| [2..10])
 -- 1
 --
 -- @
@@ -2650,7 +2650,7 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
 --
--- Note: Applying 'itakingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
+-- Note: Semiapplicativeing 'itakingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
 -- pseudo-'IndexedTraversal', but if you change the value of any target to one where the predicate returns
 -- 'False', then you will break the 'Traversal' laws and 'Traversal' fusion will no longer be sound.
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)

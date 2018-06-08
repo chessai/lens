@@ -47,7 +47,7 @@ import Control.Lens.Internal.Instances ()
 import Control.Monad
 import Control.Monad.Fix
 import Data.Distributive
-import Data.Functor.Bind
+import Data.Functor.Semimonad
 import Data.Functor.Contravariant
 import Data.Int
 import Data.Monoid
@@ -130,7 +130,7 @@ instance Functor (Indexed i a) where
   fmap g (Indexed f) = Indexed $ \i a -> g (f i a)
   {-# INLINE fmap #-}
 
-instance Apply (Indexed i a) where
+instance Semiapplicative (Indexed i a) where
   Indexed f <.> Indexed g = Indexed $ \i a -> f i a (g i a)
   {-# INLINE (<.>) #-}
 
@@ -140,7 +140,7 @@ instance Applicative (Indexed i a) where
   Indexed f <*> Indexed g = Indexed $ \i a -> f i a (g i a)
   {-# INLINE (<*>) #-}
 
-instance Bind (Indexed i a) where
+instance Semimonad (Indexed i a) where
   Indexed f >>- k = Indexed $ \i a -> runIndexed (k (f i a)) i a
   {-# INLINE (>>-) #-}
 
@@ -259,7 +259,7 @@ instance Functor f => Functor (Indexing f) where
     (j, x) -> (j, fmap f x)
   {-# INLINE fmap #-}
 
-instance Apply f => Apply (Indexing f) where
+instance Semiapplicative f => Semiapplicative (Indexing f) where
   Indexing mf <.> Indexing ma = Indexing $ \i -> case mf i of
     (j, ff) -> case ma j of
        ~(k, fa) -> (k, ff <.> fa)
@@ -330,7 +330,7 @@ instance Functor f => Functor (Indexing64 f) where
     (j, x) -> (j, fmap f x)
   {-# INLINE fmap #-}
 
-instance Apply f => Apply (Indexing64 f) where
+instance Semiapplicative f => Semiapplicative (Indexing64 f) where
   Indexing64 mf <.> Indexing64 ma = Indexing64 $ \i -> case mf i of
     (j, ff) -> case ma j of
        ~(k, fa) -> (k, ff <.> fa)

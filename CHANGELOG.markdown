@@ -9,21 +9,21 @@
 4.16 [2018.01.28]
 -----------------
 * The `Semigroup` instances for `Traversed` and `Sequenced` are now more
-  constrained (going from `Apply` to `Applicative` and `Monad`, respectively).
+  constrained (going from `Semiapplicative` to `Applicative` and `Monad`, respectively).
   In GHC 8.4, `Semigroup` is a superclass of `Monoid`, therefore we'd need to
-  have `Apply` constraint in the `Monoid` instances. We opted to weaken our
-  ability to use `Apply` than to lose compatibility with third-party packages
-  that don't supply instances for `Apply`.
+  have `Semiapplicative` constraint in the `Monoid` instances. We opted to weaken our
+  ability to use `Semiapplicative` than to lose compatibility with third-party packages
+  that don't supply instances for `Semiapplicative`.
 
   In practice this changes the (specialised) type signature of `traverseOf_`
   ```diff+
-  - traverseOf_ :: Apply f       => Fold1 s a -> (a -> f r) -> s -> f ()
+  - traverseOf_ :: Semiapplicative f       => Fold1 s a -> (a -> f r) -> s -> f ()
   + traverseOf_ :: Applicative f => Fold1 s a -> (a -> f r) -> s -> f ()
   ```
   and similarly for `forOf_` and `sequenceOf_`.
 
-  As part of this change, new combinators `traverse1Of_`, `for1Of_` and
-  `sequence1Of_` were added for `Apply`-only effects.
+  As part of this change, new combinators `semitraverseOf_`, `for1Of_` and
+  `semisequenceOf_` were added for `Semiapplicative`-only effects.
 
   Similar instance context changes were made for `Folding` and `Effect`,
   but these changes aren't publicly visible.
@@ -261,7 +261,7 @@
 * Provide access to the typename in `lensRules` naming function.
 * `makeFields` camelcasing rules now properly support types with camelcasing. `MyType` with field `myTypeFieldA` generates `fieldA` now. Previously the prefix ignore capitalization and the field would need to be named `mytypeFieldA`.
 * `makeClassy` works on types even when none of the fields would generate optics.
-* Added `Monad`, `MonadReader`, `MonadPlus` and `Bind` instances for `ReifiedMonadicFold`
+* Added `Monad`, `MonadReader`, `MonadPlus` and `Semimonad` instances for `ReifiedMonadicFold`
 * Added missing fixity declarations on many operators.
 * Migrated `Codec.Compression.Zlib.Lens` to `zlib-lens` package.
 
@@ -397,7 +397,7 @@
   and `ReifiedFold` can be used as a `Monad`, `Profunctor`, etc.
 * Many performance optimizations.
 * Switched to `exceptions` from `MonadCatchIO-transformers`
-* Added types for working with `RelevantFold` and `RelevantTraversal`. These are a `Fold` or `Traversal` that always has at least one target. Since `Apply` isn't a superclass of `Applicative`, you occasionally need to convert between them, but it lets you more readily work with less unsafety.
+* Added types for working with `RelevantFold` and `RelevantTraversal`. These are a `Fold` or `Traversal` that always has at least one target. Since `Semiapplicative` isn't a superclass of `Applicative`, you occasionally need to convert between them, but it lets you more readily work with less unsafety.
 * Changed `unwrapping` and `wrapping` to have the same constructor-oriented order as a `Prism` and renamed them t `_Wrapping` and `_Unwrapping` respectively.
 * Drastically changed the way `_Wrapping` and `_Unwrapping` are built to get much better inference.
 * There are about 15,000 lines of patches over the last year, so I'm sure we missed a few big changes.

@@ -36,7 +36,7 @@ import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
-import Data.Functor.Apply
+import Data.Functor.Semiapplicative
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Functor.Identity
@@ -107,7 +107,7 @@ instance Functor (Bazaar p a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance Apply (Bazaar p a b) where
+instance Semiapplicative (Bazaar p a b) where
   Bazaar mf <.> Bazaar ma = Bazaar $ \ pafb -> mf pafb <*> ma pafb
   {-# INLINE (<.>) #-}
 
@@ -170,7 +170,7 @@ instance Functor (BazaarT p g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance Apply (BazaarT p g a b) where
+instance Semiapplicative (BazaarT p g a b) where
   BazaarT mf <.> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
   {-# INLINE (<.>) #-}
 
@@ -210,7 +210,7 @@ instance Contravariant g => Monoid (BazaarT p g a b t) where
 ------------------------------------------------------------------------------
 
 class Profunctor p => Bizarre1 p w | w -> p where
-  bazaar1 :: Apply f => p a (f b) -> w a b t -> f t
+  bazaar1 :: Semiapplicative f => p a (f b) -> w a b t -> f t
 
 ------------------------------------------------------------------------------
 -- Bazaar1
@@ -231,7 +231,7 @@ class Profunctor p => Bizarre1 p w | w -> p where
 -- Mnemonically, a 'Bazaar1' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar1'.
-newtype Bazaar1 p a b t = Bazaar1 { runBazaar1 :: forall f. Apply f => p a (f b) -> f t }
+newtype Bazaar1 p a b t = Bazaar1 { runBazaar1 :: forall f. Semiapplicative f => p a (f b) -> f t }
 -- type role Bazaar1 representatonal nominal nominal nominal
 
 -- | This alias is helpful when it comes to reducing repetition in type signatures.
@@ -263,7 +263,7 @@ instance Functor (Bazaar1 p a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance Apply (Bazaar1 p a b) where
+instance Semiapplicative (Bazaar1 p a b) where
   Bazaar1 mf <.> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <.> ma pafb
   {-# INLINE (<.>) #-}
 
@@ -286,7 +286,7 @@ instance (a ~ b, Conjoined p) => ComonadApply (Bazaar1 p a b) where
 --
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
-newtype BazaarT1 p (g :: * -> *) a b t = BazaarT1 { runBazaarT1 :: forall f. Apply f => p a (f b) -> f t }
+newtype BazaarT1 p (g :: * -> *) a b t = BazaarT1 { runBazaarT1 :: forall f. Semiapplicative f => p a (f b) -> f t }
 #if __GLASGOW_HASKELL__ >= 707
 type role BazaarT1 representational nominal nominal nominal nominal
 #endif
@@ -320,7 +320,7 @@ instance Functor (BazaarT1 p g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance Apply (BazaarT1 p g a b) where
+instance Semiapplicative (BazaarT1 p g a b) where
   BazaarT1 mf <.> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <.> ma pafb
   {-# INLINE (<.>) #-}
 

@@ -30,7 +30,7 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Data.Foldable
-import Data.Functor.Apply
+import Data.Functor.Semiapplicative
 import Data.Int
 import Data.Semigroup
 import Data.Traversable
@@ -147,7 +147,7 @@ trimr (Two n l r) = Two (n - 1) l r
 trimr x           = x
 {-# INLINE trimr #-}
 
-instance Apply (Flows i b) where
+instance Semiapplicative (Flows i b) where
   Flows mf <.> Flows ma = Flows $ \ xss -> case xss of
     []             -> mf [] (ma [])
     (_:xs)         -> mf (triml <$> xs) $ ma (trimr <$> xs)

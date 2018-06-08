@@ -42,7 +42,7 @@ import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Data.Foldable
-import Data.Functor.Apply
+import Data.Functor.Semiapplicative
 import Data.Functor.Contravariant
 import Data.Monoid
 import Data.Profunctor.Rep
@@ -115,7 +115,7 @@ instance Functor (Molten i a b) where
   fmap f (Molten xs) = Molten (MagmaFmap f xs)
   {-# INLINE fmap #-}
 
-instance Apply (Molten i a b) where
+instance Semiapplicative (Molten i a b) where
   (<.>) = (<*>)
   {-# INLINE (<.>) #-}
 
@@ -180,7 +180,7 @@ instance Functor (Mafic a b) where
   fmap f (Mafic w k) = Mafic w (MagmaFmap f . k)
   {-# INLINE fmap #-}
 
-instance Apply (Mafic a b) where
+instance Semiapplicative (Mafic a b) where
   Mafic wf mf <.> ~(Mafic wa ma) = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
   {-# INLINE (<.>) #-}
 
@@ -230,7 +230,7 @@ instance Functor (TakingWhile p f a b) where
   fmap f (TakingWhile w t k) = let ft = f t in TakingWhile w ft $ \b -> if b then MagmaFmap f (k b) else MagmaPure ft
   {-# INLINE fmap #-}
 
-instance Apply (TakingWhile p f a b) where
+instance Semiapplicative (TakingWhile p f a b) where
   TakingWhile wf tf mf <.> ~(TakingWhile wa ta ma) = TakingWhile (wf && wa) (tf ta) $ \o ->
     if o then MagmaAp (mf True) (ma wf) else MagmaPure (tf ta)
   {-# INLINE (<.>) #-}

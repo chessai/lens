@@ -41,7 +41,7 @@ import qualified Data.Foldable as Foldable
 import Data.Foldable as Foldable
 #endif
 import Data.Function
-import Data.Functor.Bind
+import Data.Functor.Semimonad
 import Data.Functor.Plus
 import Data.Functor.Reverse
 import Data.Traversable as Traversable
@@ -104,7 +104,7 @@ instance FunctorWithIndex Int Deque where
   imap h (BD lf f lr r) = BD lf (imap h f) lr (imap (\j -> h (n - j)) r)
     where !n = lf + lr
 
-instance Apply Deque where
+instance Semiapplicative Deque where
   fs <.> as = fromList (toList fs <.> toList as)
   {-# INLINE (<.>) #-}
 
@@ -136,7 +136,7 @@ instance Reversing (Deque a) where
   reversing (BD lf f lr r) = BD lr r lf f
   {-# INLINE reversing #-}
 
-instance Bind Deque where
+instance Semimonad Deque where
   ma >>- k = fromList (toList ma >>= toList . k)
   {-# INLINE (>>-) #-}
 

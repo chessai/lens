@@ -24,8 +24,8 @@ import Data.Bifunctor
 import Data.Bitraversable
 import Data.Foldable
 import Data.Functor.Contravariant
-import Data.Semigroup.Foldable
-import Data.Semigroup.Traversable
+import Data.Semigroup.Semifoldable
+import Data.Semigroup.Semitraversable
 import Data.Traversable
 import Prelude
 
@@ -55,13 +55,13 @@ instance Traversable f => Traversable (AlongsideLeft f b) where
   traverse f (AlongsideLeft as) = AlongsideLeft <$> traverse (bitraverse f pure) as
   {-# INLINE traverse #-}
 
-instance Foldable1 f => Foldable1 (AlongsideLeft f b) where
-  foldMap1 f = foldMap1 (f . fst) . getAlongsideLeft
-  {-# INLINE foldMap1 #-}
+instance Semifoldable f => Semifoldable (AlongsideLeft f b) where
+  semifoldMap f = semifoldMap (f . fst) . getAlongsideLeft
+  {-# INLINE semifoldMap #-}
 
-instance Traversable1 f => Traversable1 (AlongsideLeft f b) where
-  traverse1 f (AlongsideLeft as) = AlongsideLeft <$> traverse1 (\(a,b) -> flip (,) b <$> f a) as
-  {-# INLINE traverse1 #-}
+instance Semitraversable f => Semitraversable (AlongsideLeft f b) where
+  semitraverse f (AlongsideLeft as) = AlongsideLeft <$> semitraverse (\(a,b) -> flip (,) b <$> f a) as
+  {-# INLINE semitraverse #-}
 
 instance Functor f => Bifunctor (AlongsideLeft f) where
   bimap f g = AlongsideLeft . fmap (bimap g f) . getAlongsideLeft
@@ -96,13 +96,13 @@ instance Traversable f => Traversable (AlongsideRight f a) where
   traverse f (AlongsideRight as) = AlongsideRight <$> traverse (bitraverse pure f) as
   {-# INLINE traverse #-}
 
-instance Foldable1 f => Foldable1 (AlongsideRight f a) where
-  foldMap1 f = foldMap1 (f . snd) . getAlongsideRight
-  {-# INLINE foldMap1 #-}
+instance Semifoldable f => Semifoldable (AlongsideRight f a) where
+  semifoldMap f = semifoldMap (f . snd) . getAlongsideRight
+  {-# INLINE semifoldMap #-}
 
-instance Traversable1 f => Traversable1 (AlongsideRight f a) where
-  traverse1 f (AlongsideRight as) = AlongsideRight <$> traverse1 (\(a,b) -> (,) a <$> f b) as
-  {-# INLINE traverse1 #-}
+instance Semitraversable f => Semitraversable (AlongsideRight f a) where
+  semitraverse f (AlongsideRight as) = AlongsideRight <$> semitraverse (\(a,b) -> (,) a <$> f b) as
+  {-# INLINE semitraverse #-}
 
 instance Functor f => Bifunctor (AlongsideRight f) where
   bimap f g = AlongsideRight . fmap (bimap f g) . getAlongsideRight

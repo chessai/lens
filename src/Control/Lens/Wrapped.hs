@@ -125,7 +125,7 @@ import           Data.Bifunctor.Joker
 import           Data.Bifunctor.Tannen
 import           Data.Bifunctor.Wrapped
 import           Data.Foldable as Foldable
-import           Data.Functor.Bind
+import           Data.Functor.Semimonad
 import           Data.Functor.Compose
 import           Data.Functor.Contravariant
 import qualified Data.Functor.Contravariant.Compose as Contravariant
@@ -687,10 +687,10 @@ instance Wrapped (WrappedApplicative f a) where
   _Wrapped' = iso unwrapApplicative WrapApplicative
   {-# INLINE _Wrapped' #-}
 
-instance (t ~ MaybeApply f' a') => Rewrapped (MaybeApply f a) t
-instance Wrapped (MaybeApply f a) where
-  type Unwrapped (MaybeApply f a) = Either (f a) a
-  _Wrapped' = iso runMaybeApply MaybeApply
+instance (t ~ MaybeSemiapplicative f' a') => Rewrapped (MaybeSemiapplicative f a) t
+instance Wrapped (MaybeSemiapplicative f a) where
+  type Unwrapped (MaybeSemiapplicative f a) = Either (f a) a
+  _Wrapped' = iso runMaybeSemiapplicative MaybeSemiapplicative
   {-# INLINE _Wrapped' #-}
 
 instance (t ~ WrappedCategory k' a' b') => Rewrapped (WrappedCategory k a b) t

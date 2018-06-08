@@ -39,7 +39,7 @@ import Control.Category
 import Control.Comonad
 import Control.Monad.Reader as Reader
 import Control.Monad.Trans.Free
-import Data.Functor.Bind
+import Data.Functor.Semimonad
 import Data.Functor.Contravariant
 import Data.Semigroup
 import Prelude hiding ((.),id)
@@ -57,7 +57,7 @@ instance Monad m => Functor (Focusing m s) where
      return (s, f a)
   {-# INLINE fmap #-}
 
-instance (Monad m, Semigroup s) => Apply (Focusing m s) where
+instance (Monad m, Semigroup s) => Semiapplicative (Focusing m s) where
   Focusing mf <.> Focusing ma = Focusing $ do
     (s, f) <- mf
     (s', a) <- ma
@@ -86,7 +86,7 @@ instance Monad m => Functor (FocusingWith w m s) where
      return (s, f a, w)
   {-# INLINE fmap #-}
 
-instance (Monad m, Semigroup s, Semigroup w) => Apply (FocusingWith w m s) where
+instance (Monad m, Semigroup s, Semigroup w) => Semiapplicative (FocusingWith w m s) where
   FocusingWith mf <.> FocusingWith ma = FocusingWith $ do
     (s, f, w) <- mf
     (s', a, w') <- ma
@@ -113,7 +113,7 @@ instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
   fmap f (FocusingPlus as) = FocusingPlus (fmap f as)
   {-# INLINE fmap #-}
 
-instance Apply (k (s, w)) => Apply (FocusingPlus w k s) where
+instance Semiapplicative (k (s, w)) => Semiapplicative (FocusingPlus w k s) where
   FocusingPlus kf <.> FocusingPlus ka = FocusingPlus (kf <.> ka)
   {-# INLINE (<.>) #-}
 
@@ -134,7 +134,7 @@ instance Functor (k (f s)) => Functor (FocusingOn f k s) where
   fmap f (FocusingOn as) = FocusingOn (fmap f as)
   {-# INLINE fmap #-}
 
-instance Apply (k (f s)) => Apply (FocusingOn f k s) where
+instance Semiapplicative (k (f s)) => Semiapplicative (FocusingOn f k s) where
   FocusingOn kf <.> FocusingOn ka = FocusingOn (kf <.> ka)
   {-# INLINE (<.>) #-}
 
@@ -176,7 +176,7 @@ instance Functor (k (May s)) => Functor (FocusingMay k s) where
   fmap f (FocusingMay as) = FocusingMay (fmap f as)
   {-# INLINE fmap #-}
 
-instance Apply (k (May s)) => Apply (FocusingMay k s) where
+instance Semiapplicative (k (May s)) => Semiapplicative (FocusingMay k s) where
   FocusingMay kf <.> FocusingMay ka = FocusingMay (kf <.> ka)
   {-# INLINE (<.>) #-}
 
@@ -218,7 +218,7 @@ instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
   fmap f (FocusingErr as) = FocusingErr (fmap f as)
   {-# INLINE fmap #-}
 
-instance Apply (k (Err e s)) => Apply (FocusingErr e k s) where
+instance Semiapplicative (k (Err e s)) => Semiapplicative (FocusingErr e k s) where
   FocusingErr kf <.> FocusingErr ka = FocusingErr (kf <.> ka)
   {-# INLINE (<.>) #-}
 
@@ -262,7 +262,7 @@ instance Functor (k (Freed f m s)) => Functor (FocusingFree f m k s) where
   fmap f (FocusingFree as) = FocusingFree (fmap f as)
   {-# INLINE fmap #-}
 
-instance Apply (k (Freed f m s)) => Apply (FocusingFree f m k s) where
+instance Semiapplicative (k (Freed f m s)) => Semiapplicative (FocusingFree f m k s) where
   FocusingFree kf <.> FocusingFree ka = FocusingFree (kf <.> ka)
   {-# INLINE (<.>) #-}
 
@@ -298,7 +298,7 @@ instance (Monad m, Monoid r) => Monoid (Effect m r a) where
   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
   {-# INLINE mappend #-}
 
-instance (Apply m, Semigroup r) => Apply (Effect m r) where
+instance (Semiapplicative m, Semigroup r) => Semiapplicative (Effect m r) where
   Effect ma <.> Effect mb = Effect (liftF2 (<>) ma mb)
   {-# INLINE (<.>) #-}
 
@@ -319,7 +319,7 @@ instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
   {-# INLINE fmap #-}
 
-instance (Semigroup s, Semigroup w, Bind m) => Apply (EffectRWS w st m s) where
+instance (Semigroup s, Semigroup w, Semimonad m) => Semiapplicative (EffectRWS w st m s) where
   EffectRWS m <.> EffectRWS n = EffectRWS $ \st -> m st >>- \ (s,t,w) -> fmap (\(s',u,w') -> (s <> s', u, w <> w')) (n t)
   {-# INLINE (<.>) #-}
 

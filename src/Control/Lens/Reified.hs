@@ -30,7 +30,7 @@ import Data.Distributive
 import Data.Foldable
 import Data.Functor.Compose
 import Data.Functor.Contravariant
-import Data.Functor.Bind
+import Data.Functor.Semimonad
 import Data.Functor.Extend
 import Data.Functor.Identity
 import Data.Functor.Plus
@@ -131,7 +131,7 @@ instance Monoid s => ComonadApply (ReifiedGetter s) where
   _ @> m = m
   {-# INLINE (@>) #-}
 
-instance Apply (ReifiedGetter s) where
+instance Semiapplicative (ReifiedGetter s) where
   Getter mf <.> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
   {-# INLINE (<.>) #-}
   m <. _ = m
@@ -149,7 +149,7 @@ instance Applicative (ReifiedGetter s) where
   _ *> m = m
   {-# INLINE (*>) #-}
 
-instance Bind (ReifiedGetter s) where
+instance Semimonad (ReifiedGetter s) where
   Getter ma >>- f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
   {-# INLINE (>>-) #-}
 
@@ -276,7 +276,7 @@ instance Functor (ReifiedIndexedGetter i s) where
   fmap f l = IndexedGetter (runIndexedGetter l.to f)
   {-# INLINE fmap #-}
 
-instance Semigroup i => Apply (ReifiedIndexedGetter i s) where
+instance Semigroup i => Semiapplicative (ReifiedIndexedGetter i s) where
   IndexedGetter mf <.> IndexedGetter ma = IndexedGetter $ \k s ->
     case iview mf s of
       (i, f) -> case iview ma s of
@@ -362,7 +362,7 @@ instance Functor (ReifiedFold s) where
   fmap f l = Fold (runFold l.to f)
   {-# INLINE fmap #-}
 
-instance Apply (ReifiedFold s) where
+instance Semiapplicative (ReifiedFold s) where
   Fold mf <.> Fold ma = Fold $ folding $ \s -> toListOf mf s <.> toListOf ma s
   {-# INLINE (<.>) #-}
   Fold mf <. Fold ma = Fold $ folding $ \s -> toListOf mf s <. toListOf ma s
@@ -386,7 +386,7 @@ instance Alternative (ReifiedFold s) where
   Fold ma <|> Fold mb = Fold $ folding (\s -> toListOf ma s ++ toListOf mb s)
   {-# INLINE (<|>) #-}
 
-instance Bind (ReifiedFold s) where
+instance Semimonad (ReifiedFold s) where
   Fold ma >>- f = Fold $ folding $ \s -> toListOf ma s >>- \a -> toListOf (runFold (f a)) s
   {-# INLINE (>>-) #-}
 
